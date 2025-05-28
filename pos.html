@@ -770,9 +770,6 @@
                 flex-direction: row;
             }
         }
-        .coupon-section {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -878,8 +875,8 @@
                 <h3><i class="fas fa-ticket-alt"></i> Available Coupons</h3>
                 <div class="coupon-list" id="coupon-list"></div>
             </div>
-            <!-- <div class="fee-group" id="fee-group"></div>
-            <div class="add-fee-btn" onclick="addFeeField()"><i class="fas fa-plus"></i> Add Fee</div> -->
+            <div class="fee-group" id="fee-group"></div>
+            <div class="add-fee-btn" onclick="addFeeField()"><i class="fas fa-plus"></i> Add Fee</div>
             <div class="summary">
                 <p><strong>Subtotal:</strong> <span id="order-subtotal">0.00</span></p>
                 <div id="fee-summary"></div>
@@ -896,8 +893,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.getElementById('order_time').selectedIndex = -1;
-        const consumerKey = 'ck_f40406bbecba206fc13e711e2f8df86de26dbbc7';
-        const consumerSecret = 'cs_62458ae4d624c3a04a515c770345466497fd88a5';
+        const consumerKey = 'ck_e699cc781f313beee7715ec67e84ab033c19c19b';
+        const consumerSecret = 'cs_9e39ce40cfc336a7f547b79c4291f7f322334150';
         const storeUrl = 'https://tenderfrozen.com';
         const apiUrl = `${storeUrl}/wp-json/wc/v3`;
 
