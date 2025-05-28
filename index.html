@@ -717,6 +717,8 @@
                             <select id="sort-by">
                                 <option value="date-desc">Date (Newest First)</option>
                                 <option value="date-asc">Date (Oldest First)</option>
+                                <option value="total-desc">Total (High to Low)</option>
+                                <option value="total-asc">Total (Low to High)</option>
                             </select>
                         </div>
                     </div>
@@ -755,8 +757,8 @@
 
     <!-- Application Logic -->
     <script>
-        const consumer_key = 'ck_f40406bbecba206fc13e711e2f8df86de26dbbc7';
-        const consumer_secret = 'cs_62458ae4d624c3a04a515c770345466497fd88a5';
+        const consumer_key = 'ck_e699cc781f313beee7715ec67e84ab033c19c19b';
+        const consumer_secret = 'cs_9e39ce40cfc336a7f547b79c4291f7f322334150';
         const storeUrl = 'https://tenderfrozen.com';
         let users = [];
         const USERS_KEY = 'tenderFrozenDeliveryUsers';
@@ -1048,94 +1050,93 @@
 
         // Fetch Orders
         async function fetchOrders(statusFilter = null) {
-    showLoading();
-    const defaultStatuses = ['pending', 'processing', 'on-hold']; 
-    const statuses = statusFilter ? [statusFilter] : defaultStatuses;
-    const dateFrom = localStorage.getItem('date-from') || '';
-    const dateTo = localStorage.getItem('date-to') || '';
-    const customer = localStorage.getItem('customer-filter') || '';
-    const perPage = localStorage.getItem('per-page') || '20';
-    const sortBy = localStorage.getItem('sort-by') || 'date-desc';
-    const perPageNum = parseInt(perPage) || 20;
-    const tabsContainer = document.getElementById('warehouse-tabs-container');
-    const contentsContainer = document.getElementById('tab-contents');
-    const statsContainer = document.getElementById('stats');
-    tabsContainer.innerHTML = '';
-    contentsContainer.innerHTML = '<p class="no-orders">Loading orders...</p>';
-    statsContainer.innerHTML = '';
-    currentOrders = [];
-    let url = '';
+            showLoading();
+            const statuses = statusFilter ? [statusFilter] : JSON.parse(localStorage.getItem('status-filter') || '[]');
+            const dateFrom = localStorage.getItem('date-from') || '';
+            const dateTo = localStorage.getItem('date-to') || '';
+            const customer = localStorage.getItem('customer-filter') || '';
+            const perPage = localStorage.getItem('per-page') || '20';
+            const sortBy = localStorage.getItem('sort-by') || 'date-desc';
+            const perPageNum = parseInt(perPage) || 20;
+            const tabsContainer = document.getElementById('warehouse-tabs-container');
+            const contentsContainer = document.getElementById('tab-contents');
+            const statsContainer = document.getElementById('stats');
+            tabsContainer.innerHTML = '';
+            contentsContainer.innerHTML = '<p class="no-orders">Loading orders...</p>';
+            statsContainer.innerHTML = '';
+            currentOrders = [];
+            let url = '';
 
-    try {
-        url = `${storeUrl}/wp-json/wc/v3/orders?page=1&per_page=${perPageNum}`;
-        if (statuses.length > 0) url += `&status=${statuses.join(',')}`;
-        if (dateFrom) url += `&after=${dateFrom}T00:00:00`;
-        if (dateTo) url += `&before=${dateTo}T23:59:59`;
-        if (customer) url += `&search=${customer}`;
-        const [orderBy, order] = sortBy.split('-');
-        url += `&orderby=${orderBy}&order=${order}`;
-
-        console.log('Fetching orders from URL:', url);
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': 'Basic ' + btoa(`${consumer_key}:${consumer_secret}`)
-            }
-        });
-        const contentType = response.headers.get('content-type');
-        console.log('Fetch response status:', response.status);
-        console.log('Fetch response content-type:', contentType);
-
-        if (!response.ok) {
-            let errorText = `HTTP error! status: ${response.status}`;
             try {
-                const errorJson = await response.json();
-                console.error('API Error Response:', errorJson);
-                errorText += `, message: ${errorJson.message || 'Unknown API error'}`;
-            } catch (e) {
-                const bodyText = await response.text();
-                console.error('API Non-JSON Error Response:', bodyText);
-                errorText += `, body: ${bodyText}`;
-            }
-            throw new Error(errorText);
-        }
-        if (!contentType || !contentType.includes('application/json')) {
-            const bodyText = await response.text();
-            console.error('API Unexpected Content Type:', contentType, 'Body:', bodyText);
-            throw new Error(`Expected JSON, got ${contentType}: ${bodyText}`);
-        }
+                url = `${storeUrl}/wp-json/wc/v3/orders?page=1&per_page=${perPageNum}`;
+                if (statuses.length > 0) url += `&status=${statuses.join(',')}`;
+                if (dateFrom) url += `&after=${dateFrom}T00:00:00`;
+                if (dateTo) url += `&before=${dateTo}T23:59:59`;
+                if (customer) url += `&search=${customer}`;
+                const [orderBy, order] = sortBy.split('-');
+                url += `&orderby=${orderBy}&order=${order}`;
 
-        currentOrders = await response.json();
-        console.log('Orders fetched successfully:', currentOrders.length);
-        displayStats(currentOrders);
-        if (currentOrders.length > 0) {
-            groupAndDisplayOrders(currentOrders);
-        } else {
-            contentsContainer.innerHTML = '<p class="no-orders">No orders found matching your criteria.</p>';
+                console.log('Fetching orders from URL:', url);
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': 'Basic ' + btoa(`${consumer_key}:${consumer_secret}`)
+                    }
+                });
+                const contentType = response.headers.get('content-type');
+                console.log('Fetch response status:', response.status);
+                console.log('Fetch response content-type:', contentType);
+
+                if (!response.ok) {
+                    let errorText = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorJson = await response.json();
+                        console.error('API Error Response:', errorJson);
+                        errorText += `, message: ${errorJson.message || 'Unknown API error'}`;
+                    } catch (e) {
+                        const bodyText = await response.text();
+                        console.error('API Non-JSON Error Response:', bodyText);
+                        errorText += `, body: ${bodyText}`;
+                    }
+                    throw new Error(errorText);
+                }
+                if (!contentType || !contentType.includes('application/json')) {
+                    const bodyText = await response.text();
+                    console.error('API Unexpected Content Type:', contentType, 'Body:', bodyText);
+                    throw new Error(`Expected JSON, got ${contentType}: ${bodyText}`);
+                }
+
+                currentOrders = await response.json();
+                console.log('Orders fetched successfully:', currentOrders.length);
+                displayStats(currentOrders);
+                if (currentOrders.length > 0) {
+                    groupAndDisplayOrders(currentOrders);
+                } else {
+                    contentsContainer.innerHTML = '<p class="no-orders">No orders found matching your criteria.</p>';
+                }
+            } catch (error) {
+                console.error('Detailed error fetching orders:', error);
+                console.error('Error Name:', error.name);
+                console.error('Error Message:', error.message);
+                console.error('Error Stack:', error.stack);
+                console.error('URL attempted:', url);
+                let displayMessage = `Error loading orders: ${error.message}`;
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    displayMessage += '. This might be a network issue, CORS problem, or an incorrect API URL/endpoint. Please check the browser console and network tab for more details.';
+                }
+                contentsContainer.innerHTML = `
+                    <div class="no-orders" style="color: var(--danger); border: 1px solid var(--danger); background-color: #fee2e2; padding: 20px; border-radius: 8px;">
+                        <p><strong>Error loading orders:</strong></p>
+                        <p>${error.message}</p>
+                        <p><small>Check browser console (F12) for more details.</small></p>
+                        <button class="action-btn" onclick="refreshOrders()" style="background: var(--primary); color: #fff; margin-top: 10px;">
+                            <i class="fas fa-sync-alt"></i> Retry
+                        </button>
+                    </div>`;
+                showNotification(displayMessage, 'error');
+            } finally {
+                hideLoading();
+            }
         }
-    } catch (error) {
-        console.error('Detailed error fetching orders:', error);
-        console.error('Error Name:', error.name);
-        console.error('Error Message:', error.message);
-        console.error('Error Stack:', error.stack);
-        console.error('URL attempted:', url);
-        let displayMessage = `Error loading orders: ${error.message}`;
-        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-            displayMessage += '. This might be a network issue, CORS problem, or an incorrect API URL/endpoint. Please check the browser console and network tab for more details.';
-        }
-        contentsContainer.innerHTML = `
-            <div class="no-orders" style="color: var(--danger); border: 1px solid var(--danger); background-color: #fee2e2; padding: 20px; border-radius: 8px;">
-                <p><strong>Error loading orders:</strong></p>
-                <p>${error.message}</p>
-                <p><small>Check browser console (F12) for more details.</small></p>
-                <button class="action-btn" onclick="refreshOrders()" style="background: var(--primary); color: #fff; margin-top: 10px;">
-                    <i class="fas fa-sync-alt"></i> Retry
-                </button>
-            </div>`;
-        showNotification(displayMessage, 'error');
-    } finally {
-        hideLoading();
-    }
-}
 
         function refreshOrders() {
             localStorage.removeItem('active-status-filter');
@@ -1279,11 +1280,9 @@
 
             orders.forEach(order => {
                 try {
-                    
                     const orderCard = document.createElement('div');
                     orderCard.classList.add('order-card', 'animate__animated', 'animate__fadeIn');
                     orderCard.dataset.orderId = order.id;
-                    
 
                     const billing = order.billing || {};
                     const shipping = order.shipping || {};
@@ -1291,7 +1290,6 @@
                     const status = order.status || 'Unknown';
 
                     const detailsHtml = generateDetailsHtml(order);
-                    
                     orderCard.innerHTML = `
                         <div class="order-card-header">
                             <h3>${customerName} (#${order.id || 'N/A'})</h3>
@@ -1456,7 +1454,6 @@ try {
                     <button class="action-btn edit-products-btn"><i class="fas fa-edit"></i> Products</button>
                 </div>
             `;
-            
         }
 
         function attachDetailButtonListeners(detailsContainer, order) {
@@ -1483,7 +1480,6 @@ function formatForCopySend(text) {
 }
 
 function getPaymentInfoForCopy(order) {
-    console.log('getPaymentInfoForCopy called with order:', order);
     const paymentMethodTitle = order.payment_method_title;
     const total = parseFloat(order.total || 0).toFixed(2);
     const currency = order.currency || '';
