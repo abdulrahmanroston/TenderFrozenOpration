@@ -12,7 +12,7 @@ const navConfig = {
 function getRelativePath() {
   let path = window.location.pathname;
   path = path.replace(/^\/+|\/+$/g, '');
-  const basePath = 'TenderFrozen';
+  const basePath = 'TenderFrozenOpration';
   if (path === basePath || path === '') {
     return '';
   }
