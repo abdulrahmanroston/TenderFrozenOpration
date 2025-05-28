@@ -1,7 +1,7 @@
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   event.waitUntil(
-    caches.open('TenderFrozenOpration-cache-v2.1.4')
+    caches.open('TenderFrozenOpration-cache-v2.1.7')
     .then((cache) => {
       return cache.addAll([
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/',
@@ -23,7 +23,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating...');
-  const cacheWhitelist = ['TenderFrozenOpration-cache-v2.4'];
+  const cacheWhitelist = ['TenderFrozenOpration-cache-v2.1.7'];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
         // Return cached response, but also check for updates  
         fetch(event.request).then((networkResponse) => {
           if (networkResponse.ok) {
-            caches.open('TenderFrozenOpration-cache-v2.1.4').then((cache) => {
+            caches.open('TenderFrozenOpration-cache-v2.1.7').then((cache) => {
               cache.put(event.request, networkResponse.clone());
             });
           }
