@@ -12,7 +12,7 @@
     <title>Frozen Products</title>
 
     <!-- Manifest for PWA -->
-    <link rel="manifest" href="manifest.json">
+    <!-- <link rel="manifest" href="manifest.json"> -->
 
     <!-- External Stylesheets -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
@@ -880,7 +880,7 @@
             <div id="loader" class="loader"></div>
             <div id="category-sections"></div>
         </div>
-        <div class="transfer-section" id="transfer-section" style="display: none;">
+        <div class="transfer-section" id="transfer-section">
             <h2>Stock Transfer</h2>
             <div class="transfer-form">
                 <div class="form-group">
@@ -990,7 +990,9 @@
                         <label><i class="fas fa-box"></i> Oraby Stock</label>
                         <div class="stock-group">
                             <span id="current-stock-oraby">0</span>
-                    
+                            <input type="number" id="adjust-stock-oraby" placeholder="Adjust (+/-)">
+                            <button class="stock-btn" onclick="adjustStock('oraby', 1)" title="Increase stock">+</button>
+                            <button class="stock-btn" onclick="adjustStock('oraby', -1)" title="Decrease stock">−</button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1008,7 +1010,9 @@
                     <label><i class="fas fa-box"></i> Tagamo3 Stock</label>
                     <div class="stock-group">
                         <span id="current-stock-tagamo3">0</span>
-                        
+                        <input type="number" id="adjust-stock-tagamo3" placeholder="Adjust (+/-)">
+                        <button class="stock-btn" onclick="adjustStock('tagamo3', 1)" title="Increase stock">+</button>
+                        <button class="stock-btn" onclick="adjustStock('tagamo3', -1)" title="Decrease stock">−</button>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1026,7 +1030,9 @@
                         <label><i class="fas fa-box"></i> Giza Stock</label>
                         <div class="stock-group">
                             <span id="current-stock-giza">0</span>
-                    
+                            <input type="number" id="adjust-stock-giza" placeholder="Adjust (+/-)">
+                            <button class="stock-btn" onclick="adjustStock('giza', 1)" title="Increase stock">+</button>
+                            <button class="stock-btn" onclick="adjustStock('giza', -1)" title="Decrease stock">−</button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1045,6 +1051,9 @@
                         <label><i class="fas fa-box"></i> Lavista Stock</label>
                         <div class="stock-group">
                             <span id="current-stock-lavista">0</span>
+                            <input type="number" id="adjust-stock-lavista" placeholder="Adjust (+/-)">
+                            <button class="stock-btn" onclick="adjustStock('lavista', 1)" title="Increase stock">+</button>
+                            <button class="stock-btn" onclick="adjustStock('lavista', -1)" title="Decrease stock">−</button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1068,10 +1077,6 @@
                             <button class="stock-btn" onclick="adjustStock('manufacturing', 1)" title="Increase stock">+</button>
                             <button class="stock-btn" onclick="adjustStock('manufacturing', -1)" title="Decrease stock">−</button>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-exclamation-triangle"></i> manufacturing Minimum Stock</label>
-                        <input type="number" id="min-stock-manufacturing" placeholder="Enter minimum stock">
                     </div>
                 </div>
             </div>
@@ -1106,10 +1111,11 @@
     <script type="text/javascript" src="tf-navigation.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-     <script>
+    <!-- Application Logic -->
+    <script>
         // API Configuration
-        const consumerKey = 'ck_f40406bbecba206fc13e711e2f8df86de26dbbc7';
-        const consumerSecret = 'cs_62458ae4d624c3a04a515c770345466497fd88a5';
+        const consumerKey = 'ck_e699cc781f313beee7715ec67e84ab033c19c19b';
+        const consumerSecret = 'cs_9e39ce40cfc336a7f547b79c4291f7f322334150';
         const storeUrl = 'https://tenderfrozen.com';
         const apiUrl = `${storeUrl}/wp-json/wc/v3/products`;
 
@@ -2150,6 +2156,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('clear-selection').addEventListener('click', clearProductSelection);
         });
 
+
+        
+        
+        
     </script>
 </body>
 </html>
