@@ -690,6 +690,7 @@
                             <label><input type="checkbox" name="status-filter" value="pending"> Pending Payment</label>
                             <label><input type="checkbox" name="status-filter" value="processing"> Processing</label>
                             <label><input type="checkbox" name="status-filter" value="on-hold"> On Hold</label>
+
                             <label><input type="checkbox" name="status-filter" value="completed"> Completed</label>
                             <label><input type="checkbox" name="status-filter" value="cancelled"> Cancelled</label>
                             <label><input type="checkbox" name="status-filter" value="refunded"> Refunded</label>
@@ -1049,7 +1050,7 @@
         // Fetch Orders
         async function fetchOrders(statusFilter = null) {
     showLoading();
-    const defaultStatuses = ['pending', 'processing', 'on-hold']; 
+    const defaultStatuses = ['pending', 'processing', 'on-hold', 'delivered', 'on-delivery']; 
     const statuses = statusFilter ? [statusFilter] : defaultStatuses;
     const dateFrom = localStorage.getItem('date-from') || '';
     const dateTo = localStorage.getItem('date-to') || '';
@@ -1147,15 +1148,17 @@
         function displayStats(orders) {
             const statsContainer = document.getElementById('stats');
             statsContainer.innerHTML = '';
-            const statusConfig = {
-                pending: { name: 'Pending', color: '#f59e0b' },
-                processing: { name: 'Processing', color: '#3b82f6' },
-                'on-hold': { name: 'On Hold', color: '#f97316' },
-                completed: { name: 'Completed', color: '#10b981' },
-                cancelled: { name: 'Cancelled', color: '#ef4444' },
-                refunded: { name: 'Refunded', color: '#6b7280' },
-                failed: { name: 'Failed', color: '#991b1b' }
-            };
+           const statusConfig = {
+    pending: { name: 'Pending', color: '#f59e0b' },
+    processing: { name: 'Processing', color: '#3b82f6' },
+    'on-hold': { name: 'On Hold', color: '#f97316' },
+    'on-delivery': { name: 'On Delivery', color: '#6366f1' },
+    delivered: { name: 'Delivered', color: '#22c55e' }, // لون أخضر فاتح لحالة delivered
+    completed: { name: 'Completed', color: '#10b981' }, // لون أخضر داكن لحالة completed
+    cancelled: { name: 'Cancelled', color: '#ef4444' },
+    refunded: { name: 'Refunded', color: '#6b7280' },
+    failed: { name: 'Failed', color: '#991b1b' }
+};
             let activeStatus = localStorage.getItem('active-status-filter') || null;
             let statusCounts = {};
             orders.forEach(order => {
@@ -1263,14 +1266,16 @@
             ordersList.innerHTML = '';
             const fragment = document.createDocumentFragment();
             const statusColors = {
-                pending: '#f59e0b',
-                processing: '#3b82f6',
-                'on-hold': '#f97316',
-                completed: '#10b981',
-                cancelled: '#ef4444',
-                refunded: '#6b7280',
-                failed: '#991b1b'
-            };
+    pending: '#f59e0b',
+    processing: '#3b82f6',
+    'on-hold': '#f97316',
+    'on-delivery': '#6366f1',
+    delivered: '#22c55e', // لون أخضر فاتح لحالة delivered
+    completed: '#10b981', // لون أخضر داكن لحالة completed
+    cancelled: '#ef4444',
+    refunded: '#6b7280',
+    failed: '#991b1b'
+};
 
             if (orders.length === 0) {
                 ordersList.innerHTML = '<p class="no-orders">No orders in this warehouse/status.</p>';
@@ -1918,6 +1923,39 @@ document.addEventListener('DOMContentLoaded', () => {
         checkbox.addEventListener('change', debouncedSaveSettingsAndFetch);
     });
 });
+
+
+// Disable Service Worker during development
+if ('serviceWorker' in navigator) {
+    // Unregister all existing Service Workers
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+            registration.unregister().then(() => {
+                console.log('Service Worker unregistered successfully');
+            }).catch(err => {
+                console.error('Failed to unregister Service Worker:', err);
+            });
+        }
+    }).catch(err => {
+        console.error('Error retrieving Service Worker registrations:', err);
+    });
+
+    // Optional: Clear all caches to ensure no cached resources interfere
+    if (window.caches) {
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    return caches.delete(cacheName).then(() => {
+                        console.log(`Cache ${cacheName} cleared`);
+                    });
+                })
+            );
+        }).catch(err => {
+            console.error('Error clearing caches:', err);
+        });
+    }
+}
+
 
 
 </script> 
