@@ -1342,127 +1342,130 @@
         }
 
         function generateDetailsHtml(orderData) {
-            let productItemsHtml = '';
-            try {
-                const lineItems = Array.isArray(orderData.line_items) ? orderData.line_items : [];
-                productItemsHtml = lineItems.map(item => {
-                    const imageSrc = item.image?.src || '';
-                    const imageAlt = item.name || 'Product';
-                    const itemName = item.name || 'Unknown Product';
-                    const itemQuantity = item.quantity || 0;
-                    return `
-                        <div class="product-item">
-                            ${imageSrc ? `<img src="${imageSrc}" alt="${imageAlt}" loading="lazy" />` : '<div style="width: 40px; height: 40px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #aaa; flex-shrink: 0;"><i class="fas fa-image"></i></div>'}
-                            <div>
-                                <span class="name">${itemName}</span>
-                                <span class="details"> × ${itemQuantity}</span>
-                            </div>
-                        </div>`;
-                }).join('');
-            } catch (error) {
-                console.error(`Error processing line items for order ${orderData.id}:`, error);
-                productItemsHtml = '<p style="color: var(--danger);">Error loading products</p>';
-            }
-
-            let feesHtml = '';
-            try {
-                const feeLines = Array.isArray(orderData.fee_lines) ? orderData.fee_lines : [];
-                feesHtml = feeLines.map(fee => `<p><strong>${fee.name || 'Fee'}:</strong> ${parseFloat(fee.total || 0).toFixed(2)} ${orderData.currency || ''}</p>`).join('');
-                if (feeLines.length === 0) feesHtml = '<p>No additional fees.</p>';
-            } catch (error) {
-                console.error(`Error processing fee lines for order ${orderData.id}:`, error);
-                feesHtml = '<p style="color: var(--danger);">Error loading fees</p>';
-            }
-
-            let orderSummaryHtml = '';
-try {
-    const total = parseFloat(orderData.total || 0) || 0;
-    const discountTotal = parseFloat(orderData.discount_total || 0) || 0;
-    const currency = orderData.currency || 'Unknown';
-    const feeLines = Array.isArray(orderData.fee_lines) ? orderData.fee_lines : [];
-    const feeTotal = feeLines.reduce((sum, fee) => sum + (parseFloat(fee.total || 0) || 0), 0) || 0;
-    const subtotal = (total + discountTotal - feeTotal) || 0;
-    const coupons = Array.isArray(orderData.coupon_lines) && orderData.coupon_lines.length > 0 ?
-        orderData.coupon_lines.map(c => c.code || 'Unknown').join(', ') :
-        null;
-    
-    let feesRows = '';
-    if (feeLines.length > 0) {
-        feesRows = feeLines.map(fee =>
-            `<tr><td>${fee.name || 'Fee'}</td><td>${(parseFloat(fee.total || 0) || 0).toFixed(2)} ${currency}</td></tr>`
-        ).join('');
+    let productItemsHtml = '';
+    try {
+        const lineItems = Array.isArray(orderData.line_items) ? orderData.line_items : [];
+        productItemsHtml = lineItems.map(item => {
+            const imageSrc = item.image?.src || '';
+            const imageAlt = item.name || 'Product';
+            const itemName = item.name || 'Unknown Product';
+            const itemQuantity = item.quantity || 0;
+            return `
+                <div class="product-item">
+                    ${imageSrc ? `<img src="${imageSrc}" alt="${imageAlt}" loading="lazy" />` : '<div style="width: 40px; height: 40px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #aaa; flex-shrink: 0;"><i class="fas fa-image"></i></div>'}
+                    <div>
+                        <span class="name">${itemName}</span>
+                        <span class="details"> × ${itemQuantity}</span>
+                    </div>
+                </div>`;
+        }).join('');
+    } catch (error) {
+        console.error(`Error processing line items for order ${orderData.id}:`, error);
+        productItemsHtml = '<p style="color: var(--danger);">Error loading products</p>';
     }
     
-    orderSummaryHtml = `
-        <table class="order-summary-table">
-            <tr><td>Subtotal</td><td>${subtotal.toFixed(2)} ${currency}</td></tr>
-            ${feesRows}
-            ${discountTotal > 0 ? `<tr><td>Discount${coupons ? ` (${coupons})` : ''}</td><td>-${discountTotal.toFixed(2)} ${currency}</td></tr>` : ''}
-            <tr><td>Total</td><td>${total.toFixed(2)} ${currency}</td></tr>
-        </table>`;
-} catch (error) {
-    console.error(`Error processing order summary for order ${orderData.id || 'Unknown'}:`, error);
-    orderSummaryHtml = `<p style="color: var(--danger);">Unable to load order summary. Please check order data.</p>`;
-}
-
-            const billingInfo = orderData.billing || {};
-            const shippingInfo = orderData.shipping || {};
-            const customerAddress = `${billingInfo.address_1 || shippingInfo.address_1 || ''}, ${billingInfo.city || shippingInfo.city || ''}, ${billingInfo.state || shippingInfo.state || ''}`.trim().replace(/^,|,$/g, '').replace(/,{2,}/g, ',');
-            const customerLocationLink = billingInfo.delivery_location|| shippingInfo.location || '#';
-            const warehouseMeta = orderData.meta_data?.find(meta => meta.key === '_selected_warehouse');
-            const warehouseName = warehouseMeta ? warehouseMeta.value : 'Unspecified';
-            const dateCreated = orderData.date_created ? new Date(orderData.date_created).toLocaleString() : 'N/A';
-            const total = parseFloat(orderData.total || 0).toFixed(2);
-            const currency = orderData.currency || '';
-            const paymentMethod = orderData.payment_method_title || 'N/A';
-            const email = billingInfo.email || 'N/A';
-            const phone = billingInfo.phone || 'N/A';
-            const orderSelectTime = orderData.additional?.order_time || 'No Selected Time';
-            const orderSelectDate = orderData.additional?.order_date || 'No Selected Date';
-
-            return `
-                <div class="section">
-                    <h4>Order Details</h4>
-                    <p><strong>Date:</strong> ${dateCreated}</p>
-                    <p><strong>Payment:</strong> ${paymentMethod}</p>
-                    <p><strong>Delivery Time:</strong> ${orderSelectTime}</p>
-                    <p><strong>Delivery Date:</strong> ${orderSelectDate}</p>
-                </div>
-                <div class="section">
-                    <h4>Customer</h4>
-                    <p><strong>Email:</strong> ${email}</p>
-                    <p><strong>Phone:</strong> ${phone}</p>
-                </div>
-                <div class="section">
-                    <h4>Address</h4>
-                    <p><strong>Address:</strong> ${customerAddress || 'N/A'}</p>
-                    <p><strong>Location:</strong> <a href="${customerLocationLink}" target="_blank" ${customerLocationLink === '#' ? 'style="color: grey; pointer-events: none; text-decoration: line-through;"' : ''}>Open Location</a></p>
-                    <p><strong>Warehouse:</strong> ${warehouseName}</p>
-                </div>
-                <div class="section">
-                    <h4>Products (${(orderData.line_items || []).length})</h4>
-                    ${productItemsHtml || '<p>No products</p>'}
-                </div>
-                <div class="section">
-                    <h4>Fees</h4>
-                    ${feesHtml}
-                </div>
-                <div class="section">
-                    <h4>Order Summary</h4>
-                    ${orderSummaryHtml}
-                </div>
-                <div class="section action-buttons">
-                    <button class="action-btn copy-address-btn"><i class="fas fa-map-marker-alt"></i> Copy Address</button>
-                    <button class="action-btn copy-order-btn"><i class="fas fa-receipt"></i> Copy Order</button>
-                    <button class="action-btn send-address-btn"><i class="fab fa-whatsapp"></i> Send Address</button>
-                    <button class="action-btn send-order-btn"><i class="fab fa-whatsapp"></i> Send Order</button>
-                    <button class="action-btn send-invoice-btn"><i class="fab fa-whatsapp"></i> Send Invoice</button>
-                    <button class="action-btn update-status-btn"><i class="fas fa-sync-alt"></i> Status</button>
-                    <button class="action-btn edit-products-btn"><i class="fas fa-edit"></i> Products</button>
-                </div>
-            `;
-            
+    let feesHtml = '';
+    try {
+        const feeLines = Array.isArray(orderData.fee_lines) ? orderData.fee_lines : [];
+        feesHtml = feeLines.map(fee => `<p><strong>${fee.name || 'Fee'}:</strong> ${parseFloat(fee.total || 0).toFixed(2)} ${orderData.currency || ''}</p>`).join('');
+        if (feeLines.length === 0) feesHtml = '<p>No additional fees.</p>';
+    } catch (error) {
+        console.error(`Error processing fee lines for order ${orderData.id}:`, error);
+        feesHtml = '<p style="color: var(--danger);">Error loading fees</p>';
+    }
+    
+    let orderSummaryHtml = '';
+    try {
+        const total = parseFloat(orderData.total || 0) || 0;
+        const discountTotal = parseFloat(orderData.discount_total || 0) || 0;
+        const currency = orderData.currency || 'Unknown';
+        const feeLines = Array.isArray(orderData.fee_lines) ? orderData.fee_lines : [];
+        const feeTotal = feeLines.reduce((sum, fee) => sum + (parseFloat(fee.total || 0) || 0), 0) || 0;
+        const subtotal = (total + discountTotal - feeTotal) || 0;
+        const coupons = Array.isArray(orderData.coupon_lines) && orderData.coupon_lines.length > 0 ?
+            orderData.coupon_lines.map(c => c.code || 'Unknown').join(', ') :
+            null;
+        
+        let feesRows = '';
+        if (feeLines.length > 0) {
+            feesRows = feeLines.map(fee =>
+                `<tr><td>${fee.name || 'Fee'}</td><td>${(parseFloat(fee.total || 0) || 0).toFixed(2)} ${currency}</td></tr>`
+            ).join('');
         }
+        
+        orderSummaryHtml = `
+            <table class="order-summary-table">
+                <tr><td>Subtotal</td><td>${subtotal.toFixed(2)} ${currency}</td></tr>
+                ${feesRows}
+                ${discountTotal > 0 ? `<tr><td>Discount${coupons ? ` (${coupons})` : ''}</td><td>-${discountTotal.toFixed(2)} ${currency}</td></tr>` : ''}
+                <tr><td>Total</td><td>${total.toFixed(2)} ${currency}</td></tr>
+            </table>`;
+    } catch (error) {
+        console.error(`Error processing order summary for order ${orderData.id || 'Unknown'}:`, error);
+        orderSummaryHtml = `<p style="color: var(--danger);">Unable to load order summary. Please check order data.</p>`;
+    }
+    
+    const billingInfo = orderData.billing || {};
+    const shippingInfo = orderData.shipping || {};
+    const customerAddress = `${billingInfo.address_1 || shippingInfo.address_1 || ''}, ${billingInfo.city || shippingInfo.city || ''}, ${billingInfo.state || shippingInfo.state || ''}`.trim().replace(/^,|,$/g, '').replace(/,{2,}/g, ',');
+    const customerLocationLink = billingInfo.delivery_location || shippingInfo.location || '#';
+    const warehouseMeta = orderData.meta_data?.find(meta => meta.key === '_selected_warehouse');
+    const warehouseName = warehouseMeta ? warehouseMeta.value : 'Unspecified';
+    const dateCreated = orderData.date_created ? new Date(orderData.date_created).toLocaleString() : 'N/A';
+    const total = parseFloat(orderData.total || 0).toFixed(2);
+    const currency = orderData.currency || '';
+    const paymentMethod = orderData.payment_method_title || 'N/A';
+    const email = billingInfo.email || 'N/A';
+    const phone = billingInfo.phone || 'N/A';
+    const zoneName = billingInfo.zone_name;
+    const notes = orderData.additional.note ;
+    const orderSelectTime = orderData.additional?.order_time || 'No Selected Time';
+    const orderSelectDate = orderData.additional?.order_date || 'No Selected Date';
+    console.log(orderData)
+    return `
+        <div class="section">
+            <h4>Order Details</h4>
+            <p><strong>Date:</strong> ${dateCreated}</p>
+            <p><strong>Payment:</strong> ${paymentMethod}</p>
+            <p><strong>Delivery Time:</strong> ${orderSelectTime}</p>
+            <p><strong>Delivery Date:</strong> ${orderSelectDate}</p>
+            <p><strong>Delivery User:</strong> ${getMetaValue(orderData.meta_data, '_delivery_user') ? JSON.parse(getMetaValue(orderData.meta_data, '_delivery_user')).name : 'Not Assigned'}</p>
+        </div>
+        <div class="section">
+            <h4>Customer</h4>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Note:</strong> ${notes || ''}</p>
+        </div>
+        <div class="section">
+            <h4>Address</h4>
+            <p><strong>Address:</strong> ${customerAddress || 'N/A'}</p>
+            <p><strong>Zone:</strong> ${zoneName || ''}</p>
+            <p><strong>Location:</strong> <a href="${customerLocationLink}" target="_blank" ${customerLocationLink === '#' ? 'style="color: grey; pointer-events: none; text-decoration: line-through;"' : ''}>Open Location</a></p>
+            <p><strong>Warehouse:</strong> ${warehouseName}</p>
+        </div>
+        <div class="section">
+            <h4>Products (${(orderData.line_items || []).length})</h4>
+            ${productItemsHtml || '<p>No products</p>'}
+        </div>
+        <div class="section">
+            <h4>Fees</h4>
+            ${feesHtml}
+        </div>
+        <div class="section">
+            <h4>Order Summary</h4>
+            ${orderSummaryHtml}
+        </div>
+        <div class="section action-buttons">
+            <button class="action-btn copy-address-btn"><i class="fas fa-map-marker-alt"></i> Copy Address</button>
+            <button class="action-btn copy-order-btn"><i class="fas fa-receipt"></i> Copy Order</button>
+            <button class="action-btn send-address-btn"><i class="fab fa-whatsapp"></i> Send Address</button>
+            <button class="action-btn send-order-btn"><i class="fab fa-whatsapp"></i> Send Order</button>
+            <button class="action-btn send-invoice-btn"><i class="fab fa-whatsapp"></i> Send Invoice</button>
+            <button class="action-btn update-status-btn"><i class="fas fa-sync-alt"></i> Status</button>
+        </div>
+    `;
+}
 
         function attachDetailButtonListeners(detailsContainer, order) {
     detailsContainer.querySelectorAll('.copy-address-btn').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); copyAddress(order); }));
@@ -1681,58 +1684,158 @@ function sendToWhatsApp(order, type) {
         }
     });
 }
-        async function openStatusModal(orderId, currentStatus) {
-            const statusOptions = [
-                { value: 'pending', label: 'Pending Payment' },
-                { value: 'processing', label: 'Processing' },
-                { value: 'on-hold', label: 'On Hold' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'cancelled', label: 'Cancelled' },
-                { value: 'refunded', label: 'Refunded' },
-                { value: 'failed', label: 'Failed' }
-            ];
-            const options = statusOptions.map(opt =>
-    `<option value="${opt.value}" ${opt.value === currentStatus ? 'selected' : ''}>${opt.label}</option>`
-).join('');
 
-Swal.fire({
-    title: 'Update Order Status',
-    html: `
-        <select id="swal-status" class="swal2-select">
-            ${options}
-        </select>
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Update',
-    cancelButtonText: 'Cancel',
-    confirmButtonColor: 'var(--success)',
-    cancelButtonColor: 'var(--danger)',
-    preConfirm: () => {
-        const status = document.getElementById('swal-status').value;
-        if (!status) {
-            Swal.showValidationMessage('Please select a status');
-            return false;
-        }
-        return status;
-    }
-}).then(async (result) => {
-    if (result.isConfirmed) {
-        const newStatus = result.value;
-        await updateOrderStatus(orderId, newStatus);
-    }
-});
-}
+let paymentMethodsCache = null;
 
-async function updateOrderStatus(orderId, newStatus) {
+async function fetchPaymentMethods() {
+    if (paymentMethodsCache) return paymentMethodsCache;
     showLoading();
     try {
+        const response = await fetch(`${storeUrl}/wp-json/wc/v3/payment_gateways`, {
+            headers: {
+                'Authorization': 'Basic ' + btoa(`${consumer_key}:${consumer_secret}`)
+            }
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to fetch payment methods');
+        }
+        paymentMethodsCache = await response.json();
+        console.log('Payment methods fetched:', paymentMethodsCache.length);
+        return paymentMethodsCache.filter(method => method.enabled);
+    } catch (error) {
+        console.error('Error fetching payment methods:', error);
+        showNotification(`Failed to fetch payment methods: ${error.message}`, 'error');
+        return [];
+    } finally {
+        hideLoading();
+    }
+}
+
+
+
+        async function openStatusModal(orderId, currentStatus) {
+    const statusOptions = [
+        { value: 'pending', label: 'Pending Payment' },
+        { value: 'processing', label: 'Processing' },
+        { value: 'on-hold', label: 'On Hold' },
+        { value: 'on-delivery', label: 'On Delivery' },
+        { value: 'delivered', label: 'Delivered' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'cancelled', label: 'Cancelled' },
+        { value: 'refunded', label: 'Refunded' },
+        { value: 'failed', label: 'Failed' }
+    ];
+    const options = statusOptions.map(opt =>
+        `<option value="${opt.value}" ${opt.value === currentStatus ? 'selected' : ''}>${opt.label}</option>`
+    ).join('');
+    const userOptions = users.map(user => `<option value="${user.id}">${user.name} (${user.job || 'N/A'})</option>`).join('');
+    const paymentMethods = await fetchPaymentMethods();
+    const paymentOptions = paymentMethods.map(method =>
+        `<option value="${method.id}">${method.title}</option>`
+    ).join('');
+    
+    Swal.fire({
+        title: 'Update Order Status',
+        html: `
+            <select id="swal-status" class="swal2-select">
+                ${options}
+            </select>
+            <div id="delivery-user-section" style="display: none; margin-top: 15px;">
+                <label for="swal-delivery-user">Select Delivery User</label>
+                <select id="swal-delivery-user" class="swal2-select">
+                    <option value="">Select a user</option>
+                    ${userOptions}
+                </select>
+            </div>
+            <div id="payment-method-section" style="display: none; margin-top: 15px;">
+                <label for="swal-payment-method">Update Payment Method</label>
+                <select id="swal-payment-method" class="swal2-select">
+                    <option value="">Keep Current</option>
+                    ${paymentOptions}
+                </select>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: 'var(--success)',
+        cancelButtonColor: 'var(--danger)',
+        didOpen: () => {
+            const statusSelect = document.getElementById('swal-status');
+            const deliverySection = document.getElementById('delivery-user-section');
+            const paymentSection = document.getElementById('payment-method-section');
+            statusSelect.addEventListener('change', () => {
+                deliverySection.style.display = statusSelect.value === 'on-delivery' ? 'block' : 'none';
+                paymentSection.style.display = statusSelect.value === 'completed' ? 'block' : 'none';
+            });
+            if (statusSelect.value === 'on-delivery') {
+                deliverySection.style.display = 'block';
+            }
+            if (statusSelect.value === 'completed') {
+                paymentSection.style.display = 'block';
+            }
+        },
+        preConfirm: () => {
+            const status = document.getElementById('swal-status').value;
+            const deliveryUserId = document.getElementById('swal-delivery-user').value;
+            const paymentMethodId = document.getElementById('swal-payment-method').value;
+            if (!status) {
+                Swal.showValidationMessage('Please select a status');
+                return false;
+            }
+            if (status === 'on-delivery' && !deliveryUserId) {
+                Swal.showValidationMessage('Please select a delivery user');
+                return false;
+            }
+            return { status, deliveryUserId: status === 'on-delivery' ? deliveryUserId : null, paymentMethodId: status === 'completed' ? paymentMethodId : null };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const { status, deliveryUserId, paymentMethodId } = result.value;
+            await updateOrderStatus(orderId, status, deliveryUserId, paymentMethodId);
+        }
+    });
+}
+
+async function updateOrderStatus(orderId, newStatus, deliveryUserId = null, paymentMethodId = null) {
+    showLoading();
+    try {
+        let body = { status: newStatus };
+        let metaData = [];
+        if (newStatus === 'on-delivery' && deliveryUserId) {
+            const deliveryUser = users.find(u => u.id === deliveryUserId);
+            if (deliveryUser) {
+                metaData.push({
+                    key: '_delivery_user',
+                    value: JSON.stringify({
+                        id: deliveryUser.id,
+                        name: deliveryUser.name,
+                        phone: deliveryUser.phone,
+                        job: deliveryUser.job,
+                        zone: deliveryUser.zone
+                    })
+                });
+            }
+        }
+        if (newStatus === 'completed' && paymentMethodId) {
+            const paymentMethods = await fetchPaymentMethods();
+            const selectedMethod = paymentMethods.find(m => m.id === paymentMethodId);
+            if (selectedMethod) {
+                body.payment_method = selectedMethod.id;
+                body.payment_method_title = selectedMethod.title;
+            }
+        }
+        if (metaData.length > 0) {
+            body.meta_data = metaData;
+        }
         const response = await fetch(`${storeUrl}/wp-json/wc/v3/orders/${orderId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': 'Basic ' + btoa(`${consumer_key}:${consumer_secret}`),
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify(body)
         });
         if (!response.ok) {
             const error = await response.json();
