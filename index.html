@@ -1516,7 +1516,7 @@ function copyAddress(order, forWhatsApp = false) {
     const orderSelectDate = order.additional.order_date || '';
     const customerName = `${billing.first_name || shipping.first_name || ''} ${billing.last_name || shipping.last_name || ''}`.trim() || 'غير معروف';
     const customerAddress = `${billing.address_1 || shipping.address_1 || ''}, ${billing.city || shipping.city || ''}, ${billing.state || shipping.state || ''}`.trim().replace(/^,|,$/g, '').replace(/,{2,}/g, ',');
-
+console.log(order)
     const addressText = `*رقم الطلب: #${order.id || 'N/A'}*\n\n` +
                        `━━━━━━━━━━━━━━━━━━\n` +
                        `*العميل:* ${customerName}\n` +
@@ -1806,16 +1806,12 @@ async function updateOrderStatus(orderId, newStatus, deliveryUserId = null, paym
         if (newStatus === 'on-delivery' && deliveryUserId) {
             const deliveryUser = users.find(u => u.id === deliveryUserId);
             if (deliveryUser) {
-                metaData.push({
-                    key: '_delivery_user',
-                    value: JSON.stringify({
-                        id: deliveryUser.id,
-                        name: deliveryUser.name,
-                        phone: deliveryUser.phone,
-                        job: deliveryUser.job,
-                        zone: deliveryUser.zone
-                    })
-                });
+                metaData.push(
+                    { key: 'delivery_person_name', value: deliveryUser.name },
+                    { key: 'delivery_person_phone', value: deliveryUser.phone }
+                );
+            } else {
+                throw new Error('Selected delivery person not found');
             }
         }
         if (newStatus === 'completed' && paymentMethodId) {
@@ -1824,6 +1820,8 @@ async function updateOrderStatus(orderId, newStatus, deliveryUserId = null, paym
             if (selectedMethod) {
                 body.payment_method = selectedMethod.id;
                 body.payment_method_title = selectedMethod.title;
+            } else {
+                throw new Error('Selected payment method not found');
             }
         }
         if (metaData.length > 0) {
