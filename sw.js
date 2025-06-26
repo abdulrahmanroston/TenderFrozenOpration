@@ -8,6 +8,7 @@ self.addEventListener('install', (event) => {
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/index.html',
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/pos.html',
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/products.html',
+        'https://abdulrahmanroston.github.io/TenderFrozenOpration/acc.html',
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/tf-navigation.js',
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/icons/icon1.png',
         'https://abdulrahmanroston.github.io/TenderFrozenOpration/icons/icon2.png',
